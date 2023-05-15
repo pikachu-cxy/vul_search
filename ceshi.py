@@ -1,3 +1,4 @@
+import re
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pandas as pd
@@ -22,6 +23,7 @@ class App(tk.Tk):
         self.page_size = 50
         self.current_page = 0
         self.total_pages = (len(self.data) - 1) // self.page_size + 1
+        self.total = 10
 
 
 
@@ -70,6 +72,7 @@ class App(tk.Tk):
 
 
         self.table.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.table.bind('<Button-3>', self.RightClicked)
         # 竖直滚动条
         vsb = tk.Scrollbar(self, orient='vertical', command=self.table.yview)
         hsb = ttk.Scrollbar(self, orient='horizontal', command=self.table.xview)
@@ -103,6 +106,53 @@ class App(tk.Tk):
 
         #self.update_table()
 
+    #右键事件 弹出菜单
+    def RightClicked(self, event):
+        print(1234)
+
+        # 创建一个菜单
+        popup_menu = tk.Menu(self.table, tearoff=False)
+        popup_menu.add_command(label="搜索poc",command=self.Tree_Focus_Area)
+        popup_menu.add_command(label="搜索exp",command=self.callback1)
+        popup_menu.add_command(label="在线验证",command=self.callback1)
+        # 显示菜单
+        popup_menu.post(event.x_root, event.y_root)
+
+    def callback1(self):
+        messagebox.showinfo("Message", "功能暂未开发完成，敬请期待！")
+
+    def copy(self, listbox):
+        listbox.event_generate("<<Copy>>")
+    def createNewWindow(self, poclist):
+
+        newWindow = tk.Toplevel(app)
+        newWindow.geometry("400x300")
+        #labelExample = tk.Label(newWindow, text="POC List")
+        #buttonExample = tk.Button(newWindow, text="New Window button")
+        listbox = tk.Listbox(newWindow,width=400,height=300)
+
+        for item in poclist:
+            listbox.insert("end", item)
+        listbox.grid(row=0, column=0, sticky="nsew")
+        #labelExample.pack()
+        #buttonExample.pack()
+    def Tree_Focus_Area(self):
+
+        selections = self.table.selection()
+        rows = [self.table.item(i, 'values') for i in selections]
+        for i, row in enumerate(rows, 1):
+            has_poc = re.search('False', str(row))
+            if has_poc:
+                messagebox.showinfo("Message", "该cve暂未爆出公开poc！")
+                return 0
+            cve = re.search('CVE-[\d]*-[\d]*', str(row))
+            if cve:
+                print(f"The selected items for ID #{i}:", cve.group())
+                poc_list = spider.search_github_poc(cve.group())
+                self.createNewWindow(poc_list)
+
+        #messagebox.showinfo("Message", "功能开发ing，敬请期待！")
+
     def init_table(self):
         print(self.total_pages)
         print(self.current_page)
@@ -118,30 +168,44 @@ class App(tk.Tk):
         self.page_label.config(text=f'Page {self.current_page} of {self.total_pages}')
 
     def update_table(self, keyword, release):
-        #data_tmp = ()
-        #data_tmp = self.search_button_confirm()
-        #print(data_tmp[1])
-        total = spider.qianxin(keyword=keyword)
-        print(total)
+
+        #total = spider.qianxin(keyword=keyword)
+
         if release == "奇安信":
-            self.data = spider.qianxin(keyword, 1, total_data=total)
+            total = spider.qianxin(keyword=keyword)
+            self.data = spider.qianxin(keyword, 1, total_data=total)[0]
+            self.total = spider.qianxin(keyword, 1, total_data=total)[1]
             self.data_tmp = pd.DataFrame(self.data)
+        if release == "斗象":
 
-            for i in range(0, total):
-                # data = spider.qianxin('1234', i, total_data=len1)
-                self.table.insert("", "end", values=(self.data[i][0], self.data[i][1], self.data[i][2], self.data[i][3], self.data[i][4], self.data[i][5]))
+            messagebox.showinfo("Message", "暂未适配此数据源，该功能敬请期待！")
 
-            start = self.current_page * self.page_size
-            end = min(start + self.page_size, len(self.data))
-            page_data = self.data_tmp.iloc[start:end]
-            self.table.delete(*self.table.get_children())
+            #total_dou = spider.douxiang(keyword=keyword)
 
-            for i, row in page_data.iterrows():
-                self.table.insert('', 'end', iid=i, values=list(row))
+            #self.data = spider.douxiang(keyword, 1, total_data=total_dou)[0]
 
-            self.total_pages = (len(self.data) - 1) // self.page_size + 1
-            #默认从第一页开始技术
-            self.page_label.config(text=f'Page {1} of {self.total_pages}')
+            #self.total = spider.douxiang(keyword, 1, total_data=total_dou)[1]
+
+            #self.data_tmp = pd.DataFrame(self.data)
+        if release == "360":
+            messagebox.showinfo("Message", "暂未适配此数据源，该功能敬请期待！")
+
+
+        for i in range(0, self.total):
+            # data = spider.qianxin('1234', i, total_data=len1)
+            self.table.insert("", "end", values=(self.data[i][0], self.data[i][1], self.data[i][2], self.data[i][3], self.data[i][4], self.data[i][5]))
+
+        start = self.current_page * self.page_size
+        end = min(start + self.page_size, len(self.data))
+        page_data = self.data_tmp.iloc[start:end]
+        self.table.delete(*self.table.get_children())
+
+        for i, row in page_data.iterrows():
+            self.table.insert('', 'end', iid=i, values=list(row))
+
+        self.total_pages = (len(self.data) - 1) // self.page_size + 1
+        #默认从第一页开始技术
+        self.page_label.config(text=f'Page {1} of {self.total_pages}')
 
 
     def update_page(self):
