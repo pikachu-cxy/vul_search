@@ -150,8 +150,8 @@ class App(tk.Tk):
                 print(f"The selected items for ID #{i}:", cve.group())
                 poc_list = spider.search_github_poc(cve.group())
                 self.createNewWindow(poc_list)
-
-        #messagebox.showinfo("Message", "功能开发ing，敬请期待！")
+            else:
+                 messagebox.showinfo("Message", "不存在CVE编号，暂不支持查询！")
 
     def init_table(self):
         print(self.total_pages)
