@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pandas as pd
-import splider
+import spider
 
 
 class App(tk.Tk):
@@ -121,14 +121,14 @@ class App(tk.Tk):
         #data_tmp = ()
         #data_tmp = self.search_button_confirm()
         #print(data_tmp[1])
-        total = splider.qianxin(keyword=keyword)
+        total = spider.qianxin(keyword=keyword)
         print(total)
         if release == "奇安信":
-            self.data = splider.qianxin(keyword, 1, total_data=total)
+            self.data = spider.qianxin(keyword, 1, total_data=total)
             self.data_tmp = pd.DataFrame(self.data)
 
             for i in range(0, total):
-                # data = splider.qianxin('1234', i, total_data=len1)
+                # data = spider.qianxin('1234', i, total_data=len1)
                 self.table.insert("", "end", values=(self.data[i][0], self.data[i][1], self.data[i][2], self.data[i][3], self.data[i][4], self.data[i][5]))
 
             start = self.current_page * self.page_size
